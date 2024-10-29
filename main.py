@@ -3,10 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# Initializing the app and configuring the database
 app = Flask(__name__)
-app.secret_key = 'eventease_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@localhost/eventease'
+
+# Replace 'username', 'password', 'localhost', and 'dbname' with your actual credentials
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Gunjan2005@localhost/eventease'
+app.secret_key = 'your_secret_key'  # Make sure to set a secret key for session management
 db = SQLAlchemy(app)
 
 # Setting up login manager
@@ -135,4 +136,6 @@ def my_bookings():
 
 # Running the app
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()  # This creates the tables only once, so place it in a main guard
     app.run(debug=True)
