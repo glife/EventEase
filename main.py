@@ -5,12 +5,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# Replace 'username', 'password', 'localhost', and 'dbname' with your actual credentials
+# Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Gunjan2005@localhost/eventease'
-app.secret_key = 'your_secret_key'  # Make sure to set a secret key for session management
+app.secret_key = 'your_secret_key'  # Set a secret key for session management
 db = SQLAlchemy(app)
 
-# Setting up login manager
+# Setup for login manager
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -18,13 +18,13 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Models for EventEase
+# Models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True)
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(1000))
-    role = db.Column(db.String(20))  # 'attendee' or 'organizer'
+    role = db.Column(db.String(20))  # 'vendor' or 'organizer'
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,13 +48,14 @@ def index():
     events = Event.query.all()
     return render_template('index.html', events=events)
 
-@app.route('/register', methods=['POST', 'GET'])
-def register():
+# Vendor registration route
+@app.route('/vendor_signup', methods=['POST', 'GET'])
+def vendor_signup():
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        role = request.form.get('role')
+        role = 'vendor'
 
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
@@ -65,10 +66,33 @@ def register():
         new_user = User(username=username, email=email, password=hashed_password, role=role)
         db.session.add(new_user)
         db.session.commit()
-        flash("Registration successful. Please log in.", "success")
+        flash("Vendor registration successful. Please log in.", "success")
         return redirect(url_for('login'))
 
-    return render_template('register.html')
+    return render_template('vendor_signup.html')
+
+# Organizer registration route
+@app.route('/organizer_signup', methods=['POST', 'GET'])
+def organizer_signup():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        role = 'organizer'
+
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash("Email already exists. Please login.", "warning")
+            return redirect(url_for('login'))
+
+        hashed_password = generate_password_hash(password)
+        new_user = User(username=username, email=email, password=hashed_password, role=role)
+        db.session.add(new_user)
+        db.session.commit()
+        flash("Organizer registration successful. Please log in.", "success")
+        return redirect(url_for('login'))
+
+    return render_template('organizer_signup.html')
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -137,5 +161,5 @@ def my_bookings():
 # Running the app
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # This creates the tables only once, so place it in a main guard
+        db.create_all()  # Creates tables if they don't exist
     app.run(debug=True)

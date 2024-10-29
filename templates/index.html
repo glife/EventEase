@@ -3,34 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventEase - Home</title>
+    <title>EventEase - Get Started</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Additional styles for the simplified account selection layout */
+        .signup-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .account-options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .option {
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .option.vendor {
+            background-color: #1DB954; /* Green */
+        }
+        .option.organizer {
+            background-color: #E60023; /* Red */
+        }
+        .option:hover {
+            opacity: 0.9;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center">Welcome to EventEase</h1>
-        <div class="text-right mb-3">
+    <div class="container signup-container">
+        <h1>Get Started with EventEase</h1>
+        <p>Select an account type to proceed</p>
+        
+        <div class="account-options">
+            <a href="{{ url_for('vendor_signup') }}" class="option vendor">I'm a Vendor</a>
+            <a href="{{ url_for('organizer_signup') }}" class="option organizer">I'm an Organizer</a>
+        </div>
+
+        <div class="text-center mt-4">
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
                 <a href="{{ url_for('my_bookings') }}" class="btn btn-info">My Bookings</a>
             {% else %}
+                <p class="mt-4">Already have an account?</p>
                 <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
-                <a href="{{ url_for('register') }}" class="btn btn-success">Register</a>
             {% endif %}
         </div>
-        <h2>Upcoming Events</h2>
-        <div class="list-group">
-            {% for event in events %}
-                <div class="list-group-item">
-                    <h5>{{ event.name }}</h5>
-                    <p>{{ event.description }}</p>
-                    <p>Date: {{ event.date }}</p>
-                    <p>Location: {{ event.location }}</p>
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('book_event', event_id=event.id) }}" class="btn btn-primary">Book Event</a>
-                    {% endif %}
-                </div>
-            {% endfor %}
+
+        <div class="mt-5">
+            <h2>Upcoming Events</h2>
+            <div class="list-group">
+                {% for event in events %}
+                    <div class="list-group-item">
+                        <h5>{{ event.name }}</h5>
+                        <p>{{ event.description }}</p>
+                        <p>Date: {{ event.date }}</p>
+                        <p>Location: {{ event.location }}</p>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('book_event', event_id=event.id) }}" class="btn btn-primary">Book Event</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </body>
