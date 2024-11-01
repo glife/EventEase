@@ -47,9 +47,6 @@
             margin-top: 10px;
             display: block;
         }
-        .vendor-checkbox {
-            margin: 10px 0;
-        }
     </style>
 </head>
 <body>
@@ -57,26 +54,21 @@
         <h2>Create Event</h2>
         <form method="POST">
             <input type="text" name="name" placeholder="Event Name" required>
-            <textarea name="description" placeholder="Event Description"></textarea>
+            <input type="text" name="type" placeholder="Event Type" required>
+            <input type="text" name="location" placeholder="Event Location" required>
             <input type="date" name="date" required>
-            <input type="text" name="location" placeholder="Location" required>
-            <input type="number" name="budget" placeholder="Budget" required>
-
-            <label for="venue">Select Venue:</label>
-            <select name="venue" required>
+            <input type="number" name="budget" placeholder="Event Budget" required>
+            
+            <label for="venue_id">Select Venue:</label>
+            <select name="venue_id" id="venue_id" required>
+                <option value="">-- Select Venue --</option>
                 {% for venue in venues %}
-                    <option value="{{ venue.id }}">{{ venue.name }} - ${{ venue.price_per_day }} per day</option>
+                    <option value="{{ venue.VenueID }}">
+                        {{ venue.VenueName }} - ₹{{ venue.Price }}; ({{ venue.Location }}); Capacity: {{venue.Capacity}} people
+                    </option>
                 {% endfor %}
             </select>
-
-            <label>Select Vendors:</label>
-            {% for vendor in vendors %}
-                <div class="vendor-checkbox">
-                    <input type="checkbox" name="vendors" value="{{ vendor.id }}">
-                    {{ vendor.name }} - {{ vendor.type }} - ${{ vendor.price_per_hour }} per hour
-                </div>
-            {% endfor %}
-
+        
             <button type="submit">Create Event</button>
         </form>
     </div>

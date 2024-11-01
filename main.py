@@ -28,10 +28,9 @@ class User(UserMixin, db.Model):
     Password = db.Column(db.String(1000), nullable=False)
     UserType = db.Column(db.Enum('Organizer', 'Vendor'), nullable=False)
     Phone = db.Column(db.String(100))
-
-    # Override get_id to return UserID
     def get_id(self):
-        return str(self.UserID)
+        return str(self.UserID)  # Return the UserID as a string
+
 
 class UserProfile(db.Model):
     __tablename__ = 'User_Profile'
@@ -86,6 +85,7 @@ class Venue(db.Model):
     VenueName = db.Column(db.String(100), nullable=False)
     Location = db.Column(db.String(255))
     Capacity = db.Column(db.Integer)
+    Price = db.Column(db.Integer)
 
 class Feedback(db.Model):
     __tablename__ = 'Feedback'
@@ -101,22 +101,20 @@ class EventVendor(db.Model):
     VendorID = db.Column(db.Integer, db.ForeignKey('Vendor.UserID'), primary_key=True)
 
 # Routes
-# Index Route
 @app.route('/')
 def index():
     events = Event.query.all()
     return render_template('index.html', events=events)
 
-# Flask code for vendor_signup route
 @app.route('/vendor_signup', methods=['POST', 'GET'])
 def vendor_signup():
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
-        vendor_type = request.form.get('vendor_type')  # Added to get the vendor type
-        price_per_hour = request.form.get('price_per_hour')  # Added to get price per hour
-        phone = request.form.get('phone')  # Added to get price per hour
+        vendor_type = request.form.get('vendor_type')
+        price_per_hour = request.form.get('price_per_hour')
+        phone = request.form.get('phone')
 
         user_type = 'Vendor'
 
@@ -127,17 +125,13 @@ def vendor_signup():
 
         hashed_password = generate_password_hash(password)
         
-        # Create new user
         new_user = User(Name=name, Email=email, Password=hashed_password, UserType=user_type, Phone=phone)
         db.session.add(new_user)
         db.session.commit()
 
-        # Create new vendor
         new_vendor = Vendor(UserID=new_user.UserID, BookingStatus='Available', VendorType=vendor_type, PricePerHour=price_per_hour)
         db.session.add(new_vendor)
-        db.session.commit()
 
-        # Check vendor type and insert into respective table
         if vendor_type == 'decorator':
             decoration_style = request.form.get('decoration_style')
             new_decorator = Decorator(VendorID=new_user.UserID, DecorationStyle=decoration_style)
@@ -153,20 +147,14 @@ def vendor_signup():
 
         db.session.commit()
 
-        # Set the price per hour in the Vendor table
-        new_vendor.PricePerHour = price_per_hour
-        db.session.commit()
-
         flash("Vendor registration successful. Please log in.", "success")
         return redirect(url_for('login'))
 
     return render_template('vendor_signup.html')
 
-# Organizer Signup Route
 @app.route('/organizer_signup', methods=['GET', 'POST'])
 def organizer_signup():
     if request.method == 'POST':
-        # Gather data
         name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
@@ -175,13 +163,11 @@ def organizer_signup():
         phone = request.form.get('phone')
         user_type = 'Organizer'
 
-        # Check if user exists
         existing_user = User.query.filter_by(Email=email).first()
         if existing_user:
             flash("Email already exists. Please log in.", "warning")
             return redirect(url_for('login'))
 
-        # Create new user and organizer records
         hashed_password = generate_password_hash(password)
         new_user = User(Name=name, Email=email, Password=hashed_password, UserType=user_type, Phone=phone)
         db.session.add(new_user)
@@ -196,9 +182,6 @@ def organizer_signup():
 
     return render_template('organizer_signup.html')
 
-
-# Login Route
-# Example of redirecting to my_bookings after login
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
@@ -209,15 +192,12 @@ def login():
         if user and check_password_hash(user.Password, password):
             login_user(user)
             flash("Login successful.", "success")
-            #return "SUCCESS"
-            return redirect(url_for('index'))  # Redirecting to my_bookings
+            return redirect(url_for('index'))
         else:
             flash("Invalid credentials.", "danger")
 
     return render_template('login.html')
 
-
-# Logout Route
 @app.route('/logout')
 @login_required
 def logout():
@@ -236,7 +216,7 @@ def create_event():
         name = request.form.get('name')
         type = request.form.get('type')
         location = request.form.get('location')
-        date = request.form.get('date')
+        event_date = request.form.get('date')
         budget = request.form.get('budget')
         venue_id = request.form.get('venue_id')
 
@@ -244,7 +224,7 @@ def create_event():
             Name=name,
             Type=type,
             Location=location,
-            Date=date,
+            Date=event_date,
             Budget=budget,
             VenueID=venue_id,
             OrganizerID=current_user.UserID
@@ -254,16 +234,34 @@ def create_event():
         flash("Event created successfully.", "success")
         return redirect(url_for('index'))
 
-    return render_template('create_event.html')
+    # Fetching venues for the dropdown
+    venues = Venue.query.all()
+    return render_template('create_event.html', venues=venues)
 
 @app.route('/my_bookings', methods=['GET'])
 @login_required
 def my_bookings():
-    # Logic to retrieve and display the user's bookings
-    # Example: bookings = Booking.query.filter_by(UserID=current_user.UserID).all()
-    return render_template('my_bookings.html', bookings=bookings)
+    events = Event.query.filter_by(OrganizerID=current_user.UserID).all()
+    return render_template('my_bookings.html', events=events)
 
-# Running the app
+@app.route('/feedback', methods=['GET', 'POST'])
+@login_required
+def feedback():
+    if request.method == 'POST':
+        organizer_id = request.form.get('organizer_id')
+        vendor_id = request.form.get('vendor_id')
+        review = request.form.get('review')
+        rating = request.form.get('rating')
+
+        new_feedback = Feedback(OrganizerID=organizer_id, VendorID=vendor_id, Review=review, Rating=rating)
+        db.session.add(new_feedback)
+        db.session.commit()
+        flash("Feedback submitted successfully.", "success")
+        return redirect(url_for('index'))
+
+    vendors = Vendor.query.all()
+    return render_template('feedback.html', vendors=vendors)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
