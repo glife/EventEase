@@ -1,48 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EventEase - Organizer Signup</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
     <style>
-        .signup-container {
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 8px;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h1, p {
-            text-align: center;
-        }
+      .signup-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      p {
+        text-align: center;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="signup-container">
-        <h1>Organizer Signup</h1>
-        <p>Create your organizer account to start planning events</p>
-        <form method="POST">
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="organization">Organization Name</label>
-                <input type="text" class="form-control" id="organization" name="organization" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-success btn-block">Sign Up as Organizer</button>
-        </form>
-        <p class="text-center mt-3">Already have an account? <a href="login.html">Log in</a>.</p>
+      <h1>Organizer Signup</h1>
+      <p>Create your organizer account to start planning events</p>
+      <form method="POST" action="/organizer_signup">
+        <!-- Full Name -->
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            name="name"
+            required />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            required />
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            required />
+        </div>
+
+        <!-- Organization Name -->
+        <div class="form-group">
+          <label for="organization_name">Organization Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="organization_name"
+            name="organization_name"
+            required />
+        </div>
+
+        <!-- Event Specialty -->
+        <div class="form-group">
+          <label for="event_specialty">Event Specialty</label>
+          <input
+            type="text"
+            class="form-control"
+            id="event_specialty"
+            name="event_specialty"
+            placeholder="e.g., Corporate, Weddings, Conferences" />
+        </div>
+
+        <!-- Phone number -->
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="text" class="form-control" id="phone" name="phone" />
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-success btn-block">
+          Sign Up as Organizer
+        </button>
+      </form>
+
+      <!-- Login Link -->
+      <p class="text-center mt-3">
+        Already have an account? <a href="login.html">Log in</a>.
+      </p>
     </div>
-</body>
+  </body>
 </html>

@@ -1,52 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EventEase - Vendor Signup</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
     <style>
-        .signup-container {
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 8px;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h1, p {
-            text-align: center;
-        }
+      .signup-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      p {
+        text-align: center;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="signup-container">
-        <h1>Vendor Signup</h1>
-        <p>Create your vendor account to start offering services</p>
-        <form method="POST">
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="business">Business Name</label>
-                <input type="text" class="form-control" id="business" name="business" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <div class="form-group">
-                <label for="services">Services Offered</label>
-                <input type="text" class="form-control" id="services" name="services" placeholder="e.g., Catering, Decorations">
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Sign Up as Vendor</button>
-        </form>
-        <p class="text-center mt-3">Already have an account? <a href="login.html">Log in</a>.</p>
+      <h1>Vendor Signup</h1>
+      <p>Create your vendor account to start offering services</p>
+      <form method="POST" action="/vendor_signup">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            name="name"
+            required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            required />
+        </div>
+        <div class="form-group">
+          <label for="vendor_type">Service Type</label>
+          <select
+            class="form-control"
+            id="vendor_type"
+            name="vendor_type"
+            required>
+            <option value="decorator">Decorator</option>
+            <option value="performer">Performer</option>
+            <option value="caterer">Caterer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="price_per_hour">Price per Hour</label>
+          <input
+            type="number"
+            class="form-control"
+            id="price_per_hour"
+            name="price_per_hour"
+            required />
+        </div>
+        <div class="form-group">
+          <label for="decoration_style" class="optional" style="display: none"
+            >Decoration Style</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            id="decoration_style"
+            name="decoration_style"
+            placeholder="Decoration Style"
+            style="display: none" />
+        </div>
+        <div class="form-group">
+          <label for="performance_type" class="optional" style="display: none"
+            >Performance Type</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            id="performance_type"
+            name="performance_type"
+            placeholder="Performance Type"
+            style="display: none" />
+        </div>
+        <div class="form-group">
+          <label for="cuisine_type" class="optional" style="display: none"
+            >Cuisine Type</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            id="cuisine_type"
+            name="cuisine_type"
+            placeholder="Cuisine Type"
+            style="display: none" />
+        </div>
+
+        <!-- Phone number -->
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="text" class="form-control" id="phone" name="phone" />
+        </div>
+        
+        <button type="submit" class="btn btn-success btn-block">
+          Sign Up as Vendor
+        </button>
+      </form>
+      <p class="text-center mt-3">
+        Already have an account? <a href="/login">Log in</a>.
+      </p>
     </div>
-</body>
+
+    <script>
+      const vendorTypeSelect = document.getElementById("vendor_type");
+      const decorationStyleInput = document.getElementById("decoration_style");
+      const performanceTypeInput = document.getElementById("performance_type");
+      const cuisineTypeInput = document.getElementById("cuisine_type");
+
+      vendorTypeSelect.addEventListener("change", function () {
+        const selectedValue = this.value;
+
+        decorationStyleInput.style.display =
+          selectedValue === "decorator" ? "block" : "none";
+        performanceTypeInput.style.display =
+          selectedValue === "performer" ? "block" : "none";
+        cuisineTypeInput.style.display =
+          selectedValue === "caterer" ? "block" : "none";
+
+        // Reset the other fields
+        if (selectedValue !== "decorator") decorationStyleInput.value = "";
+        if (selectedValue !== "performer") performanceTypeInput.value = "";
+        if (selectedValue !== "caterer") cuisineTypeInput.value = "";
+      });
+    </script>
+  </body>
 </html>

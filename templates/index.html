@@ -6,7 +6,6 @@
     <title>EventEase - Get Started</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        /* Additional styles for the simplified account selection layout */
         .signup-container {
             text-align: center;
             margin-top: 50px;
@@ -47,40 +46,69 @@
 </head>
 <body>
     <div class="container signup-container">
-        <h1>Get Started with EventEase</h1>
-        <p>Select an account type to proceed</p>
-        
-        <div class="account-options">
-            <a href="{{ url_for('vendor_signup') }}" class="option vendor">I'm a Vendor</a>
-            <a href="{{ url_for('organizer_signup') }}" class="option organizer">I'm an Organizer</a>
-        </div>
-
-        <div class="text-center mt-4">
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
-                <a href="{{ url_for('my_bookings') }}" class="btn btn-info">My Bookings</a>
-            {% else %}
-                <p class="mt-4">Already have an account?</p>
-                <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mt-3">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
-        </div>
+        {% endwith %}
+
+        {% if current_user.is_authenticated %}
+            <h1>Welcome, {{ current_user.Name }}!</h1>
+            <p>
+                {% if current_user.UserType == 'Organizer' %}
+                    Ready to create your event? 
+                    <a href="{{ url_for('create_event') }}" class="btn btn-primary">Create Event</a>
+                {% elif current_user.UserType == 'Vendor' %}
+                    Check out the upcoming events you can participate in!
+                {% endif %}
+            </p>
+            <a href="{{ url_for('my_bookings') }}" class="btn btn-info">My Bookings</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+        {% else %}
+            <h1>Welcome to EventEase!</h1>
+            <p>Select an account type to get started:</p>
+            <div class="account-options">
+                <a href="{{ url_for('vendor_signup') }}" class="option vendor">I'm a Vendor</a>
+                <a href="{{ url_for('organizer_signup') }}" class="option organizer">I'm an Organizer</a>
+            </div>
+            <p class="mt-4">Already have an account?</p>
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+        {% endif %}
 
         <div class="mt-5">
             <h2>Upcoming Events</h2>
-            <div class="list-group">
+            <div class="row">
                 {% for event in events %}
-                    <div class="list-group-item">
-                        <h5>{{ event.name }}</h5>
-                        <p>{{ event.description }}</p>
-                        <p>Date: {{ event.date }}</p>
-                        <p>Location: {{ event.location }}</p>
-                        {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('book_event', event_id=event.id) }}" class="btn btn-primary">Book Event</a>
-                        {% endif %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ event.Name }}</h5>
+                                <p class="card-text">{{ event.Type }}</p>
+                                <p><strong>Date:</strong> {{ event.Date }}</p>
+                                <p><strong>Location:</strong> {{ event.Location }}</p>
+                                <p><strong>Budget:</strong> ${{ event.Budget }}</p>
+                                {% if current_user.is_authenticated %}
+                                    <a href="{{ url_for('book_event', event_id=event.EventID) }}" class="btn btn-outline-primary">Book Event</a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 {% endfor %}
             </div>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

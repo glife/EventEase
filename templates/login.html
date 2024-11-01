@@ -7,25 +7,43 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li class="alert alert-info">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
     <div class="container mt-5">
         <h1 class="text-center">Login</h1>
-        <form method="POST">
+
+        <!-- Display error message if login fails -->
+        <div class="alert alert-danger" style="display: none;">Error: Invalid login credentials</div>
+
+        <!-- Login form -->
+        <form method="POST" action="/login">  <!-- Adjust the action URL as needed -->
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
+                <input type="email" class="form-control" id="email" name="email" required placeholder="Enter your email">
             </div>
+            
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
+                <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
             </div>
+            
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
         
-        <!-- Link to vendor and organizer signup pages -->
+        <!-- Links to vendor and organizer signup pages -->
         <p class="mt-3">Don't have an account?</p>
         <div>
-            <a href="{{ url_for('vendor_signup') }}" class="btn btn-secondary mt-2">Vendor Signup</a>
-            <a href="{{ url_for('organizer_signup') }}" class="btn btn-secondary mt-2">Organizer Signup</a>
+            <a href="/vendor_signup" class="btn btn-secondary mt-2">Vendor Signup</a>
+            <a href="/organizer_signup" class="btn btn-secondary mt-2">Organizer Signup</a>
         </div>
     </div>
 </body>
