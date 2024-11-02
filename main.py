@@ -104,7 +104,7 @@ class EventVendor(db.Model):
 @app.route('/')
 def index():
     events = Event.query.all()
-    return render_template('index.html', events=events)
+    return render_template('homepage.html', events=events)
 
 @app.route('/vendor_signup', methods=['POST', 'GET'])
 def vendor_signup():
@@ -192,7 +192,12 @@ def login():
         if user and check_password_hash(user.Password, password):
             login_user(user)
             flash("Login successful.", "success")
-            return redirect(url_for('index'))
+        
+            # Redirect to specific dashboard based on user type
+            if user.UserType == 'Organizer':
+                return redirect(url_for('organizer_dashboard'))
+            elif user.UserType == 'Vendor':
+                return redirect(url_for('vendor_dashboard'))
         else:
             flash("Invalid credentials.", "danger")
 
@@ -204,6 +209,26 @@ def logout():
     logout_user()
     flash("Logged out successfully.", "warning")
     return redirect(url_for('login'))
+
+@app.route('/organizer_dashboard')
+@login_required
+def organizer_dashboard():
+    if current_user.UserType != 'Organizer':
+        flash("Access denied. You are not an Organizer.", "danger")
+        return redirect(url_for('index'))
+    # Fetch events managed by the organizer
+    events = Event.query.filter_by(OrganizerID=current_user.UserID).all()
+    return render_template('organizer.html', events=events)
+
+@app.route('/vendor_dashboard')
+@login_required
+def vendor_dashboard():
+    if current_user.UserType != 'Vendor':
+        flash("Access denied. You are not a Vendor.", "danger")
+        return redirect(url_for('index'))
+    # Fetch bookings or related information for the vendor
+    bookings = EventVendor.query.join(Event).filter(EventVendor.VendorID == current_user.UserID).all()
+    return render_template('vendor.html', bookings=bookings)
 
 @app.route('/create_event', methods=['POST', 'GET'])
 @login_required

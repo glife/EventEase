@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEase - Welcome</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Background image for the body */
+        body {
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            font-family: 'Arial', sans-serif;
+            background-color: rgb(246, 232, 133);
+        }
+
+        .main-container {
+            text-align: center;
+            margin-top: 120px;
+            color: #333;
+            padding: 40px;  /* Increased padding */
+            border-radius: 10px;
+        }
+
+        /* Styling the welcome image */
+        .welcome-img {
+            width: 250px;  /* Increased width */
+            height: auto;  /* Maintain aspect ratio */
+            margin-bottom: 30px;  /* Increased margin */
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #6c63ff;
+            margin-bottom: 20px;  /* Increased margin */
+        }
+
+        /* Account option icons */
+        .account-options .option {
+            display: inline-block;  /* Allows for better alignment */
+            margin: 15px;  /* Added margin for spacing */
+            padding: 15px;  /* Added padding for larger clickable area */
+            font-size: 1.2rem;  /* Increased font size */
+            text-decoration: none;  /* Remove underline */
+            color: #333;  /* Text color */
+            border: 2px solid #6c63ff;  /* Added border */
+            border-radius: 8px;  /* Rounded corners */
+            transition: background-color 0.3s, color 0.3s;  /* Smooth transition for hover effect */
+        }
+
+        .account-options .option img {
+            width: 60px;   /* Increased icon size */
+            height: auto;  /* Maintain aspect ratio */
+            margin-right: 10px;  /* Increased margin */
+            vertical-align: middle;
+        }
+
+        /* Login button with icon */
+        .btn-primary {
+            padding: 10px 20px;  /* Medium padding for button */
+            font-size: 1rem;  /* Medium font size */
+            display: inline-flex;  /* Use inline-flex for centering */
+            align-items: center;  /* Center items vertically */
+            justify-content: center;  /* Center items horizontally */
+            margin: 20px auto;  /* Center button with margin */
+            border-radius: 5px;  /* Rounded corners */
+        }
+
+        .btn-primary img {
+            width: 40px;   /* Increased icon size */
+            height: auto;  /* Maintain aspect ratio */
+            margin-right: 10px;  /* Increased margin */
+        }
+
+        /* Hover effect for account options */
+        .account-options .option:hover {
+            background-color: #6c63ff;  /* Change background on hover */
+            color: white;  /* Change text color on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <!-- Welcome image above the title -->
+        <img src="{{ url_for('static', filename='Images/eventease_logo.png') }}" alt="EventEase Logo" class="welcome-img">
+
+        <h1>Welcome to EventEase!</h1>
+        <p>Get started by selecting an account type below:</p>
+        
+        <div class="account-options">
+            <!-- Vendor option with icon -->
+            <a href="{{ url_for('vendor_signup') }}" class="option vendor">
+                <img src="{{ url_for('static', filename='Images/vendor_icon.png') }}" alt="Vendor Icon"> I'm a Vendor
+            </a>
+            <a href="{{ url_for('organizer_signup') }}" class="option organizer">
+                <img src="{{ url_for('static', filename='Images/organizer_icon.jpg') }}" alt="Organizer Icon"> I'm an Organizer
+            </a>
+        </div>
+
+        <p class="mt-4">Already have an account?</p>
+        <!-- Login button with icon -->
+        <a href="{{ url_for('login') }}" class="btn btn-primary">
+            <img src="{{ url_for('static', filename='Images/login.png') }}" alt="Login Icon"> Login
+        </a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
