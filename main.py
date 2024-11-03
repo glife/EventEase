@@ -257,7 +257,7 @@ def create_event():
         db.session.add(new_event)
         db.session.commit()
         flash("Event created successfully.", "success")
-        return redirect(url_for('index'))
+        return redirect(url_for('organizer_dashboard'))
 
     # Fetching venues for the dropdown
     venues = Venue.query.all()
