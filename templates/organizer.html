@@ -39,16 +39,17 @@
             border-radius: 10px;
             background-color: var(--card-bg-color);
             transition: all 0.3s ease;
-            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px; /* Reduce padding for a more compact look */
         }
 
         .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
         }
 
         .card-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem; /* Reduce title font size */
             font-weight: bold;
             color: var(--text-dark);
         }
@@ -62,41 +63,14 @@
             border-color: var(--primary-color);
             color: var(--primary-color);
             border-radius: 50px;
-            padding: 0.5rem 1.2rem;
-            font-size: 0.9rem;
+            padding: 0.4rem 1rem; /* Reduce button padding */
+            font-size: 0.85rem;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         .btn-outline-primary:hover {
             background-color: var(--primary-color);
             color: #fff;
-        }
-
-        .btn-primary, .btn-danger {
-            border-radius: 50px;
-            padding: 0.7rem 1.4rem;
-            font-weight: 500;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
-        .btn-primary:hover {
-            background-color: #d07f23;
-            border-color: #d07f23;
-        }
-
-        .btn-danger {
-            background-color: #e74c3c;
-            border-color: #e74c3c;
-        }
-
-        .btn-danger:hover {
-            background-color: #c0392b;
-            border-color: #c0392b;
         }
 
         .no-events-message {
@@ -108,11 +82,20 @@
 
         .button-container {
             text-align: center;
-            margin-top: 40px;
+            margin-top: 30px;
         }
     </style>
 </head>
 <body>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <ul class="flashes">
+      {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
     <div class="container mt-5">
         <h1>Welcome, {{ current_user.Name }}!</h1>
         <p class="text-center text-muted mb-4">Your upcoming events:</p>
@@ -126,9 +109,10 @@
                             <p class="card-text">{{ event.Type }}</p>
                             <p><strong>Date:</strong> {{ event.Date }}</p>
                             <p><strong>Location:</strong> {{ event.Location }}</p>
-                            <p><strong>Budget:</strong> ${{ event.Budget }}</p>
-                            <div class="d-flex justify-content-center mt-3">
-                                <a href="{{ url_for('create_event', event_id=event.EventID) }}" class="btn btn-outline-primary">Manage Event</a>
+                            <p><strong>Budget:</strong> ₹{{ event.Budget }}</p>
+                            <div class="d-flex justify-content-center mt-2">
+                                <a href="{{ url_for('create_event', event_id=event.EventID) }}" class="btn btn-outline-primary mr-2">Manage Event</a>
+                                <a href="{{ url_for('hire_vendors', event_id=event.EventID) }}" class="btn btn-outline-primary">Hire Vendors</a>
                             </div>
                         </div>
                     </div>

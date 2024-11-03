@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEase - Hire Vendors</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .vendor-card {
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .vendor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Hire Vendors</h1>
+        <p class="text-center text-muted">Select from a list of available vendors to add them to your event.</p>
+        <h2>Available Vendors for Event ID: {{ event_id }}</h2>
+        {% if vendors %}
+            <form method="POST">
+                {% for vendor in vendors %}
+                    <div>
+                        <input type="checkbox" name="vendor_ids" value="{{ vendor.UserID }}">
+                        <label>
+                            {{ vendor.VendorType.capitalize() }} - Price: ₹{{ vendor.PricePerHour }}
+                            {% if vendor.VendorType == 'performer' %}
+                                - Performance Type: {{ vendor.PerformanceType }}
+                            {% elif vendor.VendorType == 'caterer' %}
+                                - Cuisine Type: {{ vendor.CuisineType }}
+                            {% elif vendor.VendorType == 'decorator' %}
+                                - Decoration Style: {{ vendor.DecorationStyle }}
+                            {% endif %}
+                        </label>
+                    </div>
+                {% endfor %}
+                <button type="submit">Hire Selected Vendors</button>
+            </form>
+        {% else %}
+            <p>No available vendors for this event type.</p>
+        {% endif %}
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('organizer_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
