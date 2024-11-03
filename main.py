@@ -7,7 +7,7 @@ from datetime import date
 app = Flask(__name__)
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:SecureSQL_007@localhost/eventease'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Gunjan2005@localhost/eventease3'
 app.secret_key = 'your_secret_key'
 db = SQLAlchemy(app)
 
@@ -216,9 +216,22 @@ def organizer_dashboard():
     if current_user.UserType != 'Organizer':
         flash("Access denied. You are not an Organizer.", "danger")
         return redirect(url_for('index'))
+
     # Fetch events managed by the organizer
     events = Event.query.filter_by(OrganizerID=current_user.UserID).all()
+
+    # Attach hired vendors to each event
+    for event in events:
+        event.hired_vendors = (
+            db.session.query(Vendor, User.Name)  # Query Vendor and User name
+            .join(EventVendor, Vendor.UserID == EventVendor.VendorID)  # Join on EventVendor
+            .join(User, Vendor.UserID == User.UserID)  # Join to get User name
+            .filter(EventVendor.EventID == event.EventID)
+            .all()
+        )
+
     return render_template('organizer.html', events=events)
+
 
 @app.route('/vendor_dashboard')
 @login_required
@@ -227,10 +240,22 @@ def vendor_dashboard():
         flash("Access denied. You are not a Vendor.", "danger")
         return redirect(url_for('index'))
 
-    # Fetch bookings for the vendor
+    # Fetch bookings for the vendor and the related event and organizer details
     bookings = EventVendor.query.filter_by(VendorID=current_user.UserID).all()
-    booked_events = [Event.query.get(booking.EventID) for booking in bookings]
-    return render_template('vendor.html', bookings=booked_events)
+    booked_events = []
+    for booking in bookings:
+        event = Event.query.get(booking.EventID)
+        if event:
+            # Fetch the organizer details
+            organizer = User.query.get(event.OrganizerID)
+            booked_events.append({
+                'event': event,
+                'organizer_name': organizer.Name if organizer else 'Unknown'
+            })
+
+    return render_template('vendor.html', booked_events=booked_events)
+
+
 
 @app.route('/create_event', methods=['POST', 'GET'])
 @login_required
@@ -272,29 +297,64 @@ def create_event():
 
     return render_template('create_event.html', venues=venues)
 
-from flask import flash, redirect, url_for, request, render_template
 
 @app.route('/hire_vendors/<int:event_id>', methods=['GET', 'POST'])
+@login_required  # Ensure only logged-in users can hire vendors
 def hire_vendors(event_id):
+    # Fetch the event and its budget
+    event = Event.query.get(event_id)
+    if not event:
+        flash("Event not found.", "danger")
+        return redirect(url_for('organizer_dashboard'))
+
     if request.method == 'POST':
         # Get the selected vendor IDs from the form
         selected_vendor_ids = request.form.getlist('vendor_ids')
 
-        # Update the BookingStatus of the selected vendors to 'Booked'
+        # List to keep track of successful bookings and total cost
+        successful_bookings = []
+        total_cost = 0
+
+        # Calculate the cumulative cost of selected vendors
         for vendor_id in selected_vendor_ids:
             vendor = Vendor.query.filter_by(UserID=vendor_id).first()
             if vendor:
-                vendor.BookingStatus = 'Booked'  # Change status
-                db.session.commit()  # Commit the changes to the database
+                # Check if vendor is already booked
+                if vendor.BookingStatus == 'Booked':
+                    flash(f"Vendor {vendor_id} is already booked.", "warning")
+                    continue
 
-        # Flash success message
-        flash("Vendors Hired!", "success")
+                # Add vendor's price to the total cost
+                total_cost += vendor.PricePerHour
 
-        # Redirect to the organizer dashboard or another page
-        return redirect(url_for('organizer_dashboard'))  # Adjust as needed
+        # Check if the total cost exceeds the event budget
+        if total_cost > event.Budget:
+            flash("Hiring these vendors would exceed the event's budget. Please adjust your selection.", "danger")
+            return redirect(url_for('hire_vendors', event_id=event_id))
 
-    # Query to get vendors with their specific types
-    vendors = db.session.query(Vendor).all()  # Adjust as needed to filter by event_id
+        # Book vendors if within budget
+        for vendor_id in selected_vendor_ids:
+            vendor = Vendor.query.filter_by(UserID=vendor_id).first()
+            if vendor:
+                vendor.BookingStatus = 'Booked'
+                db.session.commit()  # Commit status change
+
+                # Create an entry in the EventVendor table
+                event_vendor_entry = EventVendor(EventID=event_id, VendorID=vendor.UserID)
+                db.session.add(event_vendor_entry)
+                successful_bookings.append(vendor.UserID)
+
+        db.session.commit()  # Commit all changes
+
+        if successful_bookings:
+            flash("Vendors hired successfully!", "success")
+        else:
+            flash("No vendors hired. Please check the vendor status.", "info")
+
+        return redirect(url_for('organizer_dashboard'))
+
+    # Query to get available vendors (not booked)
+    vendors = Vendor.query.filter(Vendor.BookingStatus == 'Available').all()
 
     # Create a list to hold the vendor data with their specific attributes
     vendor_list = []
@@ -305,24 +365,25 @@ def hire_vendors(event_id):
             'VendorType': vendor.VendorType,
             'PricePerHour': vendor.PricePerHour
         }
-        
+
         # Retrieve specific attributes based on vendor type
         if vendor.VendorType == 'performer':
-            performer = db.session.query(Performer).filter_by(VendorID=vendor.UserID).first()
+            performer = Performer.query.filter_by(VendorID=vendor.UserID).first()
             if performer:
                 vendor_data['PerformanceType'] = performer.PerformanceType
         elif vendor.VendorType == 'caterer':
-            caterer = db.session.query(Caterer).filter_by(VendorID=vendor.UserID).first()
+            caterer = Caterer.query.filter_by(VendorID=vendor.UserID).first()
             if caterer:
                 vendor_data['CuisineType'] = caterer.CuisineType
         elif vendor.VendorType == 'decorator':
-            decorator = db.session.query(Decorator).filter_by(VendorID=vendor.UserID).first()
+            decorator = Decorator.query.filter_by(VendorID=vendor.UserID).first()
             if decorator:
                 vendor_data['DecorationStyle'] = decorator.DecorationStyle
-        
+
         vendor_list.append(vendor_data)
 
-    return render_template('hire_vendors.html', vendors=vendor_list, event_id=event_id)
+    return render_template('hire_vendors.html', vendors=vendor_list, event_id=event_id, event_budget=event.Budget)
+
 
     
 @app.route('/my_bookings', methods=['GET'])
