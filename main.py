@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import date
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -102,6 +102,17 @@ class EventVendor(db.Model):
     __tablename__ = 'EventVendor'
     EventID = db.Column(db.Integer, db.ForeignKey('Event.EventID'), primary_key=True)
     VendorID = db.Column(db.Integer, db.ForeignKey('Vendor.UserID'), primary_key=True)
+
+class EventLog(db.Model):
+    __tablename__ = 'eventlog'
+    
+    LogID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    EventID = db.Column(db.Integer, nullable=False)
+    Action = db.Column(db.Enum('created', 'modified', 'deleted'), nullable=False)
+    Timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return f"<EventLog(LogID={self.LogID}, EventID={self.EventID}, Action={self.Action}, Timestamp={self.Timestamp})>"
 
 # Routes
 @app.route('/')
@@ -465,7 +476,7 @@ def delete_event(event_id):
     try:
         # Now delete the event
         db.session.delete(event)
-        db.session.commit()
+        db.session.commit()  # Commit changes after deleting the event
         flash("Event deleted successfully.", "success")
         print(f"Event with ID {event.EventID} deleted successfully.")  # Log successful deletion
     except Exception as e:
@@ -485,7 +496,12 @@ def confirm_delete_event(event_id):
         return redirect(url_for('organizer_dashboard'))
     return render_template('delete_event.html', event=event)
 
-    
+@app.route('/event_logs')
+@login_required
+def event_logs():
+    logs = EventLog.query.all()  # Fetch all logs
+    return render_template('event_logs.html', logs=logs)
+
 @app.route('/my_bookings', methods=['GET'])
 @login_required
 def my_bookings():

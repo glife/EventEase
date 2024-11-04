@@ -141,7 +141,6 @@
                                 <a href="{{ url_for('update_event', event_id=event.EventID) }}" class="btn btn-outline-primary mr-2">Edit Event</a>
                                 <a href="{{ url_for('hire_vendors', event_id=event.EventID) }}" class="btn btn-outline-primary mr-2">Hire Vendors</a>
                                 <a href="{{ url_for('confirm_delete_event', event_id=event.EventID) }}" class="btn btn-outline-danger">Delete Event</a>
-
                             </div>
                         </div>
                     </div>
@@ -153,6 +152,7 @@
 
         <div class="button-container">
             <a href="{{ url_for('create_event') }}" class="btn btn-primary mr-2">Create New Event</a>
+            <a href="{{ url_for('event_logs') }}" class="btn btn-outline-primary mr-2">View Event Logs</a> <!--New button to view event logs -->
             <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
         </div>
     </div>
