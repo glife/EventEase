@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from sqlalchemy import text
 
 app = Flask(__name__)
 
@@ -52,6 +53,8 @@ class Vendor(db.Model):
     BookingStatus = db.Column(db.Enum('Available', 'Booked', 'Pending'), nullable=False)
     VendorType = db.Column(db.Enum('performer', 'caterer', 'decorator'), nullable=False)
     PricePerHour = db.Column(db.Numeric(10, 2))
+    Feedbacks = db.relationship('Feedback', backref='vendor', lazy=True)
+
 
 class Decorator(db.Model):
     __tablename__ = 'decorator'
@@ -97,7 +100,7 @@ class Feedback(db.Model):
     VendorID = db.Column(db.Integer, db.ForeignKey('Vendor.UserID'), nullable=False)
     Review = db.Column(db.Text)
     Rating = db.Column(db.Integer)
-
+    
 class EventVendor(db.Model):
     __tablename__ = 'EventVendor'
     EventID = db.Column(db.Integer, db.ForeignKey('Event.EventID'), primary_key=True)
@@ -315,7 +318,7 @@ def create_event():
 
 
 @app.route('/hire_vendors/<int:event_id>', methods=['GET', 'POST'])
-@login_required  # Ensure only logged-in users can hire vendors
+@login_required
 def hire_vendors(event_id):
     # Fetch the event and its budget
     event = Event.query.get(event_id)
@@ -324,43 +327,32 @@ def hire_vendors(event_id):
         return redirect(url_for('organizer_dashboard'))
 
     if request.method == 'POST':
-        # Get the selected vendor IDs from the form
         selected_vendor_ids = request.form.getlist('vendor_ids')
-
-        # List to keep track of successful bookings and total cost
         successful_bookings = []
         total_cost = 0
 
-        # Calculate the cumulative cost of selected vendors
         for vendor_id in selected_vendor_ids:
             vendor = Vendor.query.filter_by(UserID=vendor_id).first()
             if vendor:
-                # Check if vendor is already booked
                 if vendor.BookingStatus == 'Booked':
                     flash(f"Vendor {vendor_id} is already booked.", "warning")
                     continue
-
-                # Add vendor's price to the total cost
                 total_cost += vendor.PricePerHour
 
-        # Check if the total cost exceeds the event budget
         if total_cost > event.Budget:
             flash("Hiring these vendors would exceed the event's budget. Please adjust your selection.", "danger")
             return redirect(url_for('hire_vendors', event_id=event_id))
 
-        # Book vendors if within budget
         for vendor_id in selected_vendor_ids:
             vendor = Vendor.query.filter_by(UserID=vendor_id).first()
             if vendor:
                 vendor.BookingStatus = 'Booked'
-                db.session.commit()  # Commit status change
-
-                # Create an entry in the EventVendor table
+                db.session.commit()
                 event_vendor_entry = EventVendor(EventID=event_id, VendorID=vendor.UserID)
                 db.session.add(event_vendor_entry)
                 successful_bookings.append(vendor.UserID)
 
-        db.session.commit()  # Commit all changes
+        db.session.commit()
 
         if successful_bookings:
             flash("Vendors hired successfully!", "success")
@@ -369,20 +361,17 @@ def hire_vendors(event_id):
 
         return redirect(url_for('organizer_dashboard'))
 
-    # Query to get available vendors (not booked)
+    # Fetch available vendors and organize feedbacks for each
     vendors = Vendor.query.filter(Vendor.BookingStatus == 'Available').all()
-
-    # Create a list to hold the vendor data with their specific attributes
     vendor_list = []
     for vendor in vendors:
         vendor_data = {
             'UserID': vendor.UserID,
             'BookingStatus': vendor.BookingStatus,
             'VendorType': vendor.VendorType,
-            'PricePerHour': vendor.PricePerHour
+            'PricePerHour': vendor.PricePerHour,
+            'Feedbacks': []  # Placeholder for feedbacks
         }
-
-        # Retrieve specific attributes based on vendor type
         if vendor.VendorType == 'performer':
             performer = Performer.query.filter_by(VendorID=vendor.UserID).first()
             if performer:
@@ -396,9 +385,18 @@ def hire_vendors(event_id):
             if decorator:
                 vendor_data['DecorationStyle'] = decorator.DecorationStyle
 
+        # Retrieve feedbacks for the specific vendor
+        feedbacks = Feedback.query.filter_by(VendorID=vendor.UserID).all()
+        for feedback in feedbacks:
+            vendor_data['Feedbacks'].append({
+                'Rating': feedback.Rating,
+                'Review': feedback.Review
+            })
+
         vendor_list.append(vendor_data)
 
     return render_template('hire_vendors.html', vendors=vendor_list, event_id=event_id, event_budget=event.Budget)
+
 
 @app.route('/update_event/<int:event_id>', methods=['GET', 'POST'])
 @login_required
@@ -501,6 +499,14 @@ def confirm_delete_event(event_id):
 def event_logs():
     logs = EventLog.query.all()  # Fetch all logs
     return render_template('event_logs.html', logs=logs)
+
+@app.route('/event_vendor_details')
+def event_vendor_details():
+    # Fetch the data using raw SQL
+    event_vendor_data = db.session.execute(text("SELECT * FROM EventVendorDetails")).fetchall()
+    
+    # Pass the data directly to the HTML template
+    return render_template("event_vendor_details.html", event_vendor_data=event_vendor_data)
 
 @app.route('/my_bookings', methods=['GET'])
 @login_required

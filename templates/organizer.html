@@ -40,7 +40,7 @@
             background-color: var(--card-bg-color);
             transition: all 0.3s ease;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 15px;
+            padding: 25px; /* Increased padding */
         }
 
         .card:hover {
@@ -49,7 +49,7 @@
         }
 
         .card-title {
-            font-size: 1.2rem;
+            font-size: 1.5rem; /* Slightly larger title */
             font-weight: bold;
             color: var(--text-dark);
         }
@@ -61,8 +61,8 @@
 
         .btn-outline-primary, .btn-outline-danger {
             border-radius: 50px;
-            padding: 0.4rem 1rem;
-            font-size: 0.85rem;
+            padding: 0.6rem 1.2rem; /* Increased padding for buttons */
+            font-size: 0.9rem;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
@@ -95,7 +95,11 @@
 
         .button-container {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 40px; /* Increased margin for spacing */
+        }
+
+        .button-container a {
+            margin: 0 10px; /* Equal margin between buttons */
         }
     </style>
 </head>
@@ -137,7 +141,7 @@
                                 <p>No vendors hired yet.</p>
                             {% endif %}
 
-                            <div class="d-flex justify-content-around mt-2">
+                            <div class="d-flex justify-content-center mt-3"> <!-- Center buttons -->
                                 <a href="{{ url_for('update_event', event_id=event.EventID) }}" class="btn btn-outline-primary mr-2">Edit Event</a>
                                 <a href="{{ url_for('hire_vendors', event_id=event.EventID) }}" class="btn btn-outline-primary mr-2">Hire Vendors</a>
                                 <a href="{{ url_for('confirm_delete_event', event_id=event.EventID) }}" class="btn btn-outline-danger">Delete Event</a>
@@ -151,8 +155,9 @@
         </div>
 
         <div class="button-container">
-            <a href="{{ url_for('create_event') }}" class="btn btn-primary mr-2">Create New Event</a>
-            <a href="{{ url_for('event_logs') }}" class="btn btn-outline-primary mr-2">View Event Logs</a> <!--New button to view event logs -->
+            <a href="{{ url_for('create_event') }}" class="btn btn-primary">Create New Event</a>
+            <a href="{{ url_for('event_logs') }}" class="btn btn-outline-primary">View Event Logs</a> <!-- New button to view event logs -->
+            <a href="/event_vendor_details" class="btn btn-primary">View Event Vendor Details</a>
             <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
         </div>
     </div>

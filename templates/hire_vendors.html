@@ -1,18 +1,57 @@
-<!DOCTYPE html>
+hire vendor...<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventEase - Hire Vendors</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <style>
+        body {
+            background-color: #f7f9fc;
+        }
         .vendor-card {
             box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #ffffff;
         }
         .vendor-card:hover {
             transform: translateY(-5px);
             box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.15);
+        }
+        .feedback-section {
+            margin-top: 10px;
+        }
+        .feedback-item {
+            background-color: #f9f9f9;
+            padding: 10px 15px;
+            border-left: 4px solid #007bff;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        .feedback-list.expanded .feedback-item {
+            display: block;
+        }
+        .feedback-list .feedback-item {
+            display: none;
+        }
+        .feedback-list.expanded .feedback-item,
+        .feedback-list .feedback-item:nth-child(-n+3) {
+            display: block;
+        }
+        .toggle-button {
+            font-size: 0.9rem;
+            color: #007bff;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+            border: none;
+        }
+        .star-rating i {
+            color: #ffc107;
         }
     </style>
 </head>
@@ -21,29 +60,66 @@
         <h1 class="text-center">Hire Vendors</h1>
         <p class="text-center text-muted">Select from a list of available vendors to add them to your event.</p>
         <h2>Available Vendors for Event ID: {{ event_id }}</h2>
+
         {% if vendors %}
             <form method="POST">
-                {% for vendor in vendors %}
-                    <div>
-                        <input type="checkbox" name="vendor_ids" value="{{ vendor.UserID }}">
-                        <label>
-                            {{ vendor.VendorType.capitalize() }} - Price: ₹{{ vendor.PricePerHour }}
-                            {% if vendor.VendorType == 'performer' %}
-                                - Performance Type: {{ vendor.PerformanceType }}
-                            {% elif vendor.VendorType == 'caterer' %}
-                                - Cuisine Type: {{ vendor.CuisineType }}
-                            {% elif vendor.VendorType == 'decorator' %}
-                                - Decoration Style: {{ vendor.DecorationStyle }}
-                            {% endif %}
-                        </label>
-                    </div>
-                {% endfor %}
-                <button type="submit">Hire Selected Vendors</button>
+                <div class="row">
+                    {% for vendor in vendors %}
+                        <div class="col-md-4">
+                            <div class="vendor-card">
+                                <input type="checkbox" name="vendor_ids" value="{{ vendor.UserID }}" id="vendor{{ vendor.UserID }}">
+                                <label for="vendor{{ vendor.UserID }}" class="font-weight-bold">
+                                    {{ vendor.VendorType.capitalize() }} - Price: ₹{{ vendor.PricePerHour }}
+                                </label>
+                                <p class="mb-1">
+                                    {% if vendor.VendorType == 'performer' %}
+                                        Performance Type: {{ vendor.PerformanceType }}
+                                    {% elif vendor.VendorType == 'caterer' %}
+                                        Cuisine Type: {{ vendor.CuisineType }}
+                                    {% elif vendor.VendorType == 'decorator' %}
+                                        Decoration Style: {{ vendor.DecorationStyle }}
+                                    {% endif %}
+                                </p>
+
+                                <!-- Feedback Section -->
+                                <div class="feedback-section">
+                                    <h6>Feedback</h6>
+                                    {% if vendor.Feedbacks %}
+                                        <div class="feedback-list" id="feedback-list-{{ vendor.UserID }}">
+                                            {% for feedback in vendor.Feedbacks %}
+                                                <div class="feedback-item">
+                                                    <p>
+                                                        <strong>Rating:</strong>
+                                                        <span class="star-rating">
+                                                            {% for i in range(feedback.Rating) %}
+                                                                <i class="fas fa-star"></i>
+                                                            {% endfor %}
+                                                            {% for i in range(5 - feedback.Rating) %}
+                                                                <i class="far fa-star"></i>
+                                                            {% endfor %}
+                                                        </span>
+                                                    </p>
+                                                    <p>{{ feedback.Review }}</p>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% if vendor.Feedbacks|length > 3 %}
+                                            <button type="button" class="toggle-button" onclick="toggleFeedback('{{ vendor.UserID }}')">View More</button>
+                                        {% endif %}
+                                    {% else %}
+                                        <p>No feedback available.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-primary mt-4">Hire Selected Vendors</button>
             </form>
         {% else %}
             <p>No available vendors for this event type.</p>
         {% endif %}
-        
+
         <div class="text-center mt-4">
             <a href="{{ url_for('organizer_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
         </div>
@@ -51,5 +127,13 @@
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function toggleFeedback(vendorId) {
+            const feedbackList = document.getElementById('feedback-list-' + vendorId);
+            feedbackList.classList.toggle('expanded');
+            const button = document.querySelector(#feedback-list-${vendorId} + .toggle-button);
+            button.textContent = feedbackList.classList.contains('expanded') ? 'View Less' : 'View More';
+        }
+    </script>
 </body>
 </html>
