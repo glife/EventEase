@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Event</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        input[type="text"], input[type="date"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Update Event</h2>
+        <form method="POST">
+            <input type="text" name="name" value="{{ event.event_name }}" placeholder="Event Name" required>
+            <input type="text" name="type" value="{{ event.event_type }}" placeholder="Event Type" required>
+            <input type="text" name="location" value="{{ event.location }}" placeholder="Event Location" required>
+            <input type="date" name="date" value="{{ event.event_date }}" required>
+            <input type="number" name="budget" value="{{ event.budget }}" placeholder="Event Budget" required>
+            
+            <label for="venue_id">Select Venue:</label>
+            <select name="venue_id" id="venue_id" required>
+                <option value="">-- Select Venue --</option>
+                {% for venue in venues %}
+                    <option value="{{ venue.VenueID }}" {% if venue.VenueID == event.venue_id %}selected{% endif %}>
+                        {{ venue.VenueName }} - ₹{{ venue.Price }}; ({{ venue.Location }}); Capacity: {{venue.Capacity}} people
+                    </option>
+                {% endfor %}
+            </select>
+        
+            <button type="submit">Update Event</button>
+        </form>
+    </div>
+</body>
+</html>

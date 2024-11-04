@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Events</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        .event-list {
+            list-style: none;
+            padding: 0;
+        }
+        .event {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .event:last-child {
+            border-bottom: none;
+        }
+        .event h3 {
+            margin: 0 0 5px;
+        }
+        .event p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .edit-delete-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .edit-delete-buttons a {
+            color: #5cb85c;
+            text-decoration: none;
+            font-size: 0.9em;
+            padding: 5px 10px;
+            border-radius: 3px;
+            border: 1px solid #5cb85c;
+            transition: background-color 0.2s;
+        }
+        .edit-delete-buttons a.delete {
+            color: #d9534f;
+            border-color: #d9534f;
+        }
+        .edit-delete-buttons a:hover {
+            background-color: #5cb85c;
+            color: white;
+        }
+        .edit-delete-buttons a.delete:hover {
+            background-color: #d9534f;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>View Events</h2>
+        
+        {% if events %}
+            <ul class="event-list">
+                {% for event in events %}
+                    <li class="event">
+                        <h3>{{ event.event_name }}</h3>
+                        <p><strong>Type:</strong> {{ event.event_type }}</p>
+                        <p><strong>Location:</strong> {{ event.location }}</p>
+                        <p><strong>Date:</strong> {{ event.event_date }}</p>
+                        <p><strong>Budget:</strong> ₹{{ event.budget }}</p>
+                        <p><strong>Venue:</strong> {{ event.venue.VenueName }}</p>
+                        
+                        <div class="edit-delete-buttons">
+                            <a href="/events/edit/{{ event.event_id }}" class="edit">Edit</a>
+                            <a href="/events/delete/{{ event.event_id }}" class="delete">Delete</a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No events found. <a href="/events/create">Create a new event</a></p>
+        {% endif %}
+    </div>
+</body>
+</html>

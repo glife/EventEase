@@ -7,7 +7,7 @@ from datetime import date
 app = Flask(__name__)
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Gunjan2005@localhost/eventease3'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:SecureSQL_007@localhost/eventease'
 app.secret_key = 'your_secret_key'
 db = SQLAlchemy(app)
 
@@ -78,6 +78,9 @@ class Event(db.Model):
     Budget = db.Column(db.Numeric(10, 2))
     VenueID = db.Column(db.Integer, db.ForeignKey('Venue.VenueID'), nullable=True)
     OrganizerID = db.Column(db.Integer, db.ForeignKey('Organizer.UserID'), nullable=False)
+
+    event_vendors = db.relationship('EventVendor', cascade='all, delete-orphan', backref='event')
+
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
@@ -222,15 +225,17 @@ def organizer_dashboard():
 
     # Attach hired vendors to each event
     for event in events:
-        event.hired_vendors = (
-            db.session.query(Vendor, User.Name)  # Query Vendor and User name
-            .join(EventVendor, Vendor.UserID == EventVendor.VendorID)  # Join on EventVendor
-            .join(User, Vendor.UserID == User.UserID)  # Join to get User name
+        event.hired_vendors = [
+            (vendor, vendor_name)  # Creates tuple for vendor object and name
+            for vendor, vendor_name in db.session.query(Vendor, User.Name)
+            .join(EventVendor, Vendor.UserID == EventVendor.VendorID)
+            .join(User, Vendor.UserID == User.UserID)
             .filter(EventVendor.EventID == event.EventID)
             .all()
-        )
+        ]
 
     return render_template('organizer.html', events=events)
+
 
 
 @app.route('/vendor_dashboard')
@@ -384,6 +389,101 @@ def hire_vendors(event_id):
 
     return render_template('hire_vendors.html', vendors=vendor_list, event_id=event_id, event_budget=event.Budget)
 
+@app.route('/update_event/<int:event_id>', methods=['GET', 'POST'])
+@login_required
+def update_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    
+    if current_user.UserType != 'Organizer' or event.OrganizerID != current_user.UserID:
+        flash("Access denied.", "danger")
+        return redirect(url_for('organizer_dashboard'))
+    
+    venues = Venue.query.all()
+    
+    if request.method == 'POST':
+        event.Name = request.form.get('name')
+        event.Type = request.form.get('type')
+        event.Location = request.form.get('location')
+        event.Date = request.form.get('date')
+        event.Budget = float(request.form.get('budget'))
+        venue_id = request.form.get('venue_id')
+        
+        # Validate budget against venue price
+        venue = Venue.query.get(venue_id)
+        if venue and event.Budget < venue.Price:
+            flash(f"Budget must be at least ₹{venue.Price} for the selected venue.", "danger")
+            return render_template('update_event.html', event=event, venues=venues)
+        
+        event.VenueID = venue_id
+        db.session.commit()
+        flash("Event updated successfully.", "success")
+        return redirect(url_for('organizer_dashboard'))
+    
+    return render_template('update_event.html', event=event, venues=venues)
+
+@app.route('/delete_event/<int:event_id>', methods=['POST'])
+@login_required
+def delete_event(event_id):
+    print(f"Attempting to delete event with ID: {event_id}")  # Log event deletion attempt
+    event = Event.query.get_or_404(event_id)
+
+    if current_user.UserType != 'Organizer' or event.OrganizerID != current_user.UserID:
+        print("Access denied for user.")  # Log access denial
+        flash("Access denied.", "danger")
+        return redirect(url_for('organizer_dashboard'))
+
+    # Find all vendors associated with the event
+    associated_vendors = EventVendor.query.filter_by(EventID=event.EventID).all()
+    print(f"Associated vendors found: {len(associated_vendors)}")  # Log the number of vendors
+
+    # Update the booking status of each associated vendor to "Available"
+    for vendor in associated_vendors:
+        print(f"Updating vendor {vendor.VendorID} status to 'Available'")  # Log vendor update
+        
+        # Get the actual vendor object from the Vendor table
+        vendor_to_update = Vendor.query.filter_by(UserID=vendor.VendorID).first()
+        
+        if vendor_to_update:  # Check if the vendor was found
+            print("Initial status: ", vendor_to_update.BookingStatus)  # Log initial status
+            vendor_to_update.BookingStatus = 'Available'  # Update Booking Status
+            print("Updated status: ", vendor_to_update.BookingStatus)  # Log updated status
+
+    try:
+        # Commit the changes for the booking status
+        db.session.commit()
+        print("Booking statuses updated successfully.")
+    except Exception as e:
+        print(f"Error updating booking statuses: {e}")  # Log error on status update
+        db.session.rollback()  # Roll back in case of error
+        flash("Error updating vendor status. Event not deleted.", "danger")
+        return redirect(url_for('organizer_dashboard'))
+
+    # Delete associated EventVendor records
+    delete_count = EventVendor.query.filter_by(EventID=event.EventID).delete()
+    print(f"Deleted {delete_count} associated EventVendor records.")  # Log how many were deleted
+
+    try:
+        # Now delete the event
+        db.session.delete(event)
+        db.session.commit()
+        flash("Event deleted successfully.", "success")
+        print(f"Event with ID {event.EventID} deleted successfully.")  # Log successful deletion
+    except Exception as e:
+        print(f"Error deleting event: {e}")  # Log error on event deletion
+        db.session.rollback()  # Roll back in case of error
+        flash("Error deleting event.", "danger")
+    
+    return redirect(url_for('organizer_dashboard'))
+
+
+@app.route('/confirm_delete_event/<int:event_id>')
+@login_required
+def confirm_delete_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    if current_user.UserType != 'Organizer' or event.OrganizerID != current_user.UserID:
+        flash("Access denied.", "danger")
+        return redirect(url_for('organizer_dashboard'))
+    return render_template('delete_event.html', event=event)
 
     
 @app.route('/my_bookings', methods=['GET'])
